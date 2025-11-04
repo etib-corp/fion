@@ -4,10 +4,17 @@
 #include <string>
 #include <map>
 
-#include "HTTPVersion.hpp"
+#include "http/Version.hpp"
+#include "http/Headers.hpp"
 
-namespace fion
+namespace fion::http
 {
+    /**
+     * @brief HTTP status codes
+     *
+     * Enumeration of standard HTTP status codes as defined in RFC 9110
+     * and other relevant specifications
+     */
     enum class StatusCode : ::std::int16_t
     {
         // Informational responses
@@ -84,26 +91,89 @@ namespace fion
         NETWORK_AUTHENTICATION_REQUIRED = 511 ///< The client must authenticate itself to gain network access
     };
 
+    /**
+     * @brief Convert a StatusCode to its string representation
+     *
+     * @param statusCode The status code to convert
+     * @return The string representation of the status code (e.g., "OK", "Not Found")
+     * @throws std::invalid_argument if the status code is not recognized
+     */
     const std::string statusCodeToString(const StatusCode statusCode);
 
+    /**
+     * @brief Represents an HTTP response
+     *
+     * This class encapsulates an HTTP response with its version, status code,
+     * headers, and body. It provides methods to build and serialize HTTP responses.
+     */
     class Response
     {
     private:
-        HTTPVersion _HTTPVersion;
+        Version _version;
         StatusCode _statusCode;
-        std::map<std::string, std::string> _headers;
+        Headers _headers;
         std::string _body;
 
     public:
+        /**
+         * @brief Construct a new Response object
+         */
         Response(void);
+
+        /**
+         * @brief Destroy the Response object
+         */
         ~Response(void);
 
-        void setHTTPVersion(const HTTPVersion HTTPVersion) { _HTTPVersion = HTTPVersion; }
+        /**
+         * @brief Set the HTTP version for the response
+         *
+         * @param Version The HTTP version to use
+         */
+        void setVersion(const Version Version) { _version = Version; }
+
+        /**
+         * @brief Set the status code for the response
+         *
+         * @param statusCode The HTTP status code
+         */
         void setStatusCode(const StatusCode statusCode) { _statusCode = statusCode; }
-        void setHeader(const std::string &key, const std::string &value) { _headers[key] = value; }
+
+        /**
+         * @brief Set a header key-value pair
+         *
+         * @param key The header name
+         * @param value The header value
+         */
+        void setHeader(const std::string &key, const std::string &value) { _headers.set(key, value); }
+
+        /**
+         * @brief Set the response body
+         *
+         * @param body The response body content
+         */
         void setBody(const std::string &body) { _body = body; }
 
+        /**
+         * @brief Get the headers object (mutable)
+         *
+         * @return Reference to the Headers object
+         */
+        Headers &getHeaders(void) { return _headers; }
+
+        /**
+         * @brief Get the headers object (const)
+         *
+         * @return Const reference to the Headers object
+         */
+        const Headers &getHeaders(void) const { return _headers; }
+
+        /**
+         * @brief Convert the response to raw HTTP response format
+         *
+         * @return The raw HTTP response string with status line, headers, and body
+         */
         const std::string toRawResponse(void) const;
     };
 
-} // namespace fion
+} // namespace fion::http

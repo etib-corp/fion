@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory>
-#include "Request.hpp"
-#include "Response.hpp"
+#include "http/Request.hpp"
+#include "http/Response.hpp"
 
 namespace fion
 {
@@ -11,7 +11,7 @@ namespace fion
     {
     public:
         virtual ~Handler(void) = default;
-        virtual std::unique_ptr<Response> handle(std::unique_ptr<Request> request) = 0;
+        virtual std::unique_ptr<http::Response> handle(std::unique_ptr<http::Request> request) = 0;
     };
 
 } // namespace fion

@@ -1,8 +1,19 @@
 # Architecture
 
+This document splits the architecture into focused views so each part can be explained independently, then brings them back together with a compact overview.
+
+## Routing layer
+
+The routing layer wires incoming requests to business logic:
+
+- `Application` owns a `Router` and starts the server.
+- `Router` stores `Route` entries and resolves a handler for a path + method.
+- `Route` binds an HTTP method and path to a `Handler`.
+- `Handler` is an interface: handle a `Request` and produce a `Response`.
+
 ```mermaid
 classDiagram
-    %% Main Classes
+    %% Routing Layer
     class Application {
         -Router router
         +add_route(path: string, method: string, handler: shared_ptr~Handler~)
@@ -28,32 +39,22 @@ classDiagram
         +virtual unique_ptr~Response~ handle(request: unique_ptr~Request~)* = 0
     }
 
-    class Request {
-        -Method _method
-        -URL _URL
-        -HTTPVersion _HTTPVersion
-        -map~string, string~ _headers
-        -string _body
-        +Request(rawStartLine: string, rawHeaders: string, rawBody: string)
-        +getMethod() Method
-        +getURL() URL
-        +getHTTPVersion() HTTPVersion
-        +getHeader(key: string) string
-        +getBody() string
-    }
+    Application --> Router : contains
+    Router --> Route : contains
+    Route --> Handler : uses
+```
 
-    class Response {
-        -HTTPVersion _HTTPVersion
-        -StatusCode _statusCode
-        -map~string, string~ _headers
-        -string _body
-        +setHTTPVersion(version: HTTPVersion)
-        +setStatusCode(statusCode: StatusCode)
-        +setHeader(key: string, value: string)
-        +setBody(body: string)
-        +toRawResponse() string
-    }
+## HTTP primitives
 
+Core HTTP types used across the system:
+
+- `Method` and `StatusCode` are enums.
+- `Version` captures the HTTP major/minor version.
+- `URL` stores parsed components of a request target.
+
+```mermaid
+classDiagram
+    %% HTTP Primitives
     class Method {
         <<enumeration>>
         GET
@@ -74,13 +75,12 @@ classDiagram
         BAD_REQUEST
         NOT_FOUND
         INTERNAL_SERVER_ERROR
-        ...
     }
 
-    class HTTPVersion {
+    class Version {
         -int _major
         -int _minor
-        +HTTPVersion(major: int, minor: int)
+        +Version(major: int, minor: int)
         +getMajor() int
         +getMinor() int
         +toString() string
@@ -100,16 +100,71 @@ classDiagram
         +getQuery() string
         +getFragment() string
     }
+```
 
-    %% Relationships
+## HTTP messages
+
+`Request` and `Response` represent the HTTP message model:
+
+- `Request` holds method, URL, version, headers, and body.
+- `Response` holds version, status, headers, and body.
+- Both reference the primitives above.
+
+```mermaid
+classDiagram
+    %% HTTP Messages
+    class Request {
+        -Method _method
+        -URL _URL
+        -Version _version
+        -map~string, string~ _headers
+        -string _body
+        +Request(rawStartLine: string, rawHeaders: string, rawBody: string)
+        +getMethod() Method
+        +getURL() URL
+        +getVersion() Version
+        +getHeader(key: string) string
+        +getBody() string
+    }
+
+    class Response {
+        -Version _version
+        -StatusCode _statusCode
+        -map~string, string~ _headers
+        -string _body
+        +setVersion(version: Version)
+        +setStatusCode(statusCode: StatusCode)
+        +setHeader(key: string, value: string)
+        +setBody(body: string)
+        +toRawResponse() string
+    }
+
+    class Method
+    class URL
+    class Version
+    class StatusCode
+
+    Request --> Method : uses
+    Request --> Version : uses
+    Request --> URL : uses
+    Response --> StatusCode : uses
+    Response --> Version : uses
+```
+
+## End‑to‑end overview
+
+This compact view shows how everything connects during a typical request lifecycle.
+
+```mermaid
+classDiagram
     Application --> Router : contains
     Router --> Route : contains
     Route --> Handler : uses
     Handler --> Response : returns
     Handler --> Request : accepts
     Request --> Method : uses
-    Request --> HTTPVersion : uses
+    Request --> Version : uses
     Request --> URL : uses
     Response --> StatusCode : uses
-    Response --> HTTPVersion : uses
+    Response --> Version : uses
 ```
