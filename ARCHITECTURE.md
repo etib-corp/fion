@@ -13,16 +13,16 @@ classDiagram
     class Application {
         -_server: Server
         -_router: Router
-        +add_route(path: string, method: string, handler: shared_ptr~Handler~)
-        +run(host: string, port: int, num_threads: int)
+        +addRoute(path: string, method: string, handler: shared_ptr~Handler~)
+        +run(host: string, port: int, numThreads: int)
         +stop()
-        +get_router() Router
+        +getRouter() Router
     }
 
     class Server {
         -_listener: Listener
-        -_pool_manager: PoolManager
-        +start(num_threads: int)
+        -_poolManager: PoolManager
+        +start(numThreads: int)
         +stop()
     }
 
@@ -45,15 +45,15 @@ The server and listener handle connection acceptance and I/O orchestration.
 classDiagram
     class Server {
         -_listener: Listener
-        -_pool_manager: PoolManager
-        +start(num_threads: int)
+        -_poolManager: PoolManager
+        +start(numThreads: int)
         +stop()
     }
 
     class Listener {
-        -_listen_fd: int
-        -_addr: sockaddr_in
-        +accept_client() int
+        -_listenFD: int
+        -_address: sockaddr_in
+        +acceptClient() int
     }
 
     Server --> Listener : contains
@@ -76,7 +76,7 @@ classDiagram
     class PoolManager {
         -_pools: vector~Pool~
         -_mutex: mutex
-        -_next_pool_index: int
+        -_nextPoolIndex: int
         +add_pool(pool: Pool)
         +get_pool() Pool*
         +distribute_client(fd: int)
@@ -84,11 +84,11 @@ classDiagram
 
     class Pool {
         -_loop: EventLoop
-        -_conn_pool: ConnectionPool
+        -_connectionPool: ConnectionPool
         -_thread: thread
         +run()
         +stop()
-        +add_client(fd: int)
+        +addClient(fd: int)
     }
 
     PoolManager --> Pool : contains (1..N)
@@ -116,8 +116,8 @@ classDiagram
 
     class Poller {
         -_epoll_fd: int
-        +add_fd(fd: int, events: uint32_t)
-        +remove_fd(fd: int)
+        +addFD(fd: int, events: uint32_t)
+        +removeFD(fd: int)
         +poll(timeout_ms: int) vector~epoll_event~
     }
 
@@ -128,7 +128,7 @@ classDiagram
 **Purpose:**
 
 - **EventLoop**: Runs in each pool’s thread, processing I/O events.
-- **Poller**: Uses `epoll` to monitor sockets for read/write events.
+- **Poller**: Uses `poll` to monitor sockets for read/write events.
 
 ---
 
@@ -141,20 +141,20 @@ classDiagram
     class ConnectionPool {
         -_clients: unordered_map~int, unique_ptr~Client~~
         -_mutex: mutex
-        +add_client(fd: int)
-        +remove_client(fd: int)
-        +get_client(fd: int) Client*
+        +addClient(fd: int)
+        +removeClient(fd: int)
+        +getClient(fd: int) Client*
     }
 
     class Client {
         -_fd: int
-        -_request_buffer: vector~char~
-        -_response_buffer: vector~char~
+        -_requestBuffer: vector~char~
+        -_responseBuffer: vector~char~
         -_state: State
         -_mutex: mutex
-        +read_request()
-        +write_response(res: Response)
-        +is_ready() bool
+        +readRequest()
+        +writeResponse(res: Response)
+        +isReady() bool
     }
 
     class Buffer {
@@ -162,7 +162,7 @@ classDiagram
         -_mutex: mutex
         +append(data: char*, len: size_t)
         +clear()
-        +get_data() string_view
+        +getData() string_view
     }
 
     Pool --> ConnectionPool : contains
@@ -187,8 +187,8 @@ classDiagram
     class Router {
         -_routes: vector~Route~
         -_mutex: mutex
-        +add_route(route: Route)
-        +find_route(path: string, method: string) shared_ptr~Handler~
+        +addRoute(route: Route)
+        +findRoute(path: string, method: string) shared_ptr~Handler~
     }
 
     class Route {

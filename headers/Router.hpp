@@ -1,22 +1,21 @@
 #pragma once
 
-#include <vector>
-#include <memory>
-#include "Route.hpp"
 #include "Handler.hpp"
+#include "Route.hpp"
+#include <memory>
+#include <vector>
 
-namespace fion
-{
+namespace fion {
 
-    class Router
-    {
-    public:
-        std::vector<Route> routes;
+class Router {
+public:
+  std::vector<Route> routes;
 
-        Router() = default;
+  Router() = default;
 
-        void add_route(const Route &route);
-        std::shared_ptr<Handler> find_route(const std::string &path, const std::string &method);
-    };
+  void addRoute(const Route &route);
+  std::shared_ptr<Handler> findRoute(const std::string &path,
+                                     const std::string &method);
+};
 
 } // namespace fion

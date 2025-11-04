@@ -1,26 +1,30 @@
 #pragma once
 
-#include <string>
-#include <memory>
-#include "Router.hpp"
 #include "Handler.hpp"
+#include "Router.hpp"
+#include "network/Server.hpp"
+#include <cstdint>
+#include <memory>
+#include <string>
 
-namespace fion
-{
+namespace fion {
 
-    class Application
-    {
-    private:
-        Router router;
+class Application {
+private:
+  Router router;
+  std::unique_ptr<network::Server> server;
 
-    public:
-        Application() = default;
+public:
+  Application();
+  ~Application();
 
-        void add_route(const std::string &path, const std::string &method,
-                       std::shared_ptr<Handler> handler);
-        void run(const std::string &host, int port);
+  void addRoute(const std::string &path, const std::string &method,
+                std::shared_ptr<Handler> handler);
+  void run(const std::string &host, std::uint16_t port,
+           std::size_t numThreads = 4);
+  void stop();
 
-        Router &get_router() { return router; }
-    };
+  Router &getRouter() { return router; }
+};
 
 } // namespace fion

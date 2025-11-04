@@ -31,6 +31,8 @@
         "string": "cpp",
         "string_view": "cpp",
         "typeinfo": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "queue": "cpp",
+        "condition_variable": "cpp"
     }
 }

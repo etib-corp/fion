@@ -36,8 +36,8 @@ set(SOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sources")
 # Add the headers directories
 include_directories(${HEADERS_DIR})
 
-# Collect common source files
-file(GLOB_RECURSE SOURCES "${SOURCES_DIR}/*.cpp")
+# Collect common source files (auto-detect new files without manual reconfigure)
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${SOURCES_DIR}/*.cpp")
 
 if(BUILD_SHARED_LIBS)
     add_library(${PROJECT_NAME} SHARED ${SOURCES})
