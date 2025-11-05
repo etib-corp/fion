@@ -21,6 +21,16 @@ private:
       queryParameters; ///< Query parameters as key-value pairs
   std::string anchor;  ///< The URL fragment/anchor
 
+  // Internal parsing helpers (private); some are static utilities while others
+  // mutate the instance state.
+  static std::string toLowerCopy(const std::string &s);
+  static std::uint16_t defaultPortForScheme(const std::string &scheme);
+  static std::uint16_t parsePortNumber(const std::string &portStr);
+  void parseScheme(const std::string &raw, std::size_t &pos);
+  void parseFragment(std::string &url, std::size_t startPos);
+  void parseQuery(std::string &url, std::size_t startPos);
+  void parseAuthorityAndPath(const std::string &url, std::size_t pos);
+
 public:
   /**
    * @brief Construct an empty URL object
