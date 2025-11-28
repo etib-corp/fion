@@ -98,13 +98,33 @@ int main(const int argc, const char *const argv[], const char *const envp[]) {
   auto user_handler = std::make_shared<UserHandler>();
   auto echo_handler = std::make_shared<EchoHandler>();
 
-  // Add routes
-  app.addRoute("/", "GET", hello_handler);
-  app.addRoute("/users", "GET", user_handler);
-  app.addRoute("/echo", "POST", echo_handler);
+  // Example middleware
+  auto log_middleware = [](std::unique_ptr<fion::http::Request>& req) {
+    std::cout << "[Middleware] Incoming: " << req->getURL().getPathToResource() << std::endl;
+  };
+
+  // Add routes with parameters
+  app.addRoute("/", "GET", hello_handler, {log_middleware});
+  app.addRoute("/users", "GET", user_handler, {log_middleware});
+  app.addRoute("/echo", "POST", echo_handler, {log_middleware});
+
+  // Route with parameter: /users/:id
+  app.addRoute("/users/:id", "GET", user_handler, {log_middleware});
+
+  // Regex route: /search/(.*)
+  app.addRoute("/search/(.*)", "GET", echo_handler, {log_middleware}, true, {"query"});
+
+  // Grouped routes
+  std::vector<fion::Route> apiRoutes = {
+    fion::Route("/status", "GET", hello_handler),
+    fion::Route("/info", "GET", user_handler)
+  };
+  app.addGroup("/api", apiRoutes, {log_middleware});
+
+  // RESTful resource routing for /items
+  app.addResource("items", echo_handler, {log_middleware});
 
   // Run the application with 4 I/O threads (default)
-  // You can customize the number of threads: app.run("0.0.0.0", 8080, 8);
   app.run("0.0.0.0", 8080);
 
   return EXIT_SUCCESS;

@@ -168,17 +168,26 @@ void Pool::process_request(Client *client) {
 
     logging::Logger::info("Pool: routing " + method + " " + path);
 
-    auto handler = _router->findRoute(path, method);
+    std::map<std::string, std::string> params;
+    std::vector<std::function<void(std::unique_ptr<http::Request>&)>> middleware;
+    auto handler = _router->findRoute(path, method, params, middleware);
 
     if (handler) {
-      // Execute handler
-      auto response = handler->handle(std::make_unique<http::Request>(request));
-      // Ensure a basic Connection header (close) to simplify lifecycle
+      // Attach params to request (if needed)
+      auto reqPtr = std::make_unique<http::Request>(request);
+      // Optionally: add a method to Request to set params, or use headers for now
+      for (const auto& kv : params) {
+        reqPtr->getHeaders().set("x-param-" + kv.first, kv.second);
+      }
+      // Run middleware
+      for (auto& mw : middleware) {
+        mw(reqPtr);
+      }
+      auto response = handler->handle(std::move(reqPtr));
       response->setHeader("Connection", "close");
       client->prepare_response(*response);
       logging::Logger::debug("Pool: handler produced response");
     } else {
-      // No handler found, return 404
       http::Response response;
       response.setStatusCode(http::StatusCode::NOT_FOUND);
       response.setBody("Not Found");
